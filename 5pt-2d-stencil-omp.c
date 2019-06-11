@@ -4,7 +4,9 @@
 #include <unistd.h>
 
 #include <time.h>
+
 #include "cycles.c"
+#include <omp.h>
 
 #define M 1000
 
@@ -25,10 +27,13 @@ int main(int argc, char ** argv) {
     double ** a, ** b;
     int i = 0;
     int j = 0, k = 0;
+    /*struct timespec time1;
+    struct timespec time2;
+    struct timespec result; */
     cycles_t * tstamp;
     struct report_options report = {};
 
-    tstamp = (cycles_t *) malloc(sizeof(cycles_t) * 2);
+    tstamp = (cycles_t *) malloc(sizeof(cycles_t) * 2);    
 
     a = (double **) malloc(sizeof(double *) * M);
     b = (double **) malloc(sizeof(double *) * M);
@@ -49,9 +54,11 @@ int main(int argc, char ** argv) {
         a[j][M-1] = 1;
     } 
 
+//    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);
 
     tstamp[0] = get_cycles();
     for (i = 0; i < 10; i++) {
+        #pragma omp parallel for
         for (j = 1; j < M - 1; j++) {
             for (k = 1; k < M - 1; k++) {
                 b[j][k] = 0.2 * 
@@ -59,15 +66,20 @@ int main(int argc, char ** argv) {
             }
         }
         
+        #pragma omp parallel for
         for (j = 1; j < M - 1; j++) {
             for (k = 1; k < M - 1; k++) {
                 a[j][k] = b[j][k];
             }
         }
+
     } 
     tstamp[1] = get_cycles();
-    printf("Timing results:\n");
-    print_report(&report, 1, tstamp);
+//    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &time2);                                
+    printf("Timing results (omp %d threads):\n", omp_get_num_threads());
+    print_report(&report, 1, tstamp); 
+//    result = mydifftime(time1, time2);
+//    printf("timing: %lu.%.0f sec\n", result.tv_sec, (double)(result.tv_nsec / 1000000.0));
 
     return 0;
 }
