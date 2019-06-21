@@ -6,7 +6,7 @@
 #include <time.h>
 
 //#define M 8
-static const int M = 10000;
+static const int M = 10;
 static const int nr_blocks = 1024;
 
 static inline struct timespec mydifftime(struct timespec start, struct timespec end)
@@ -76,8 +76,10 @@ int main(int argc, char ** argv) {
 #endif /* DEBUG */
 
     for (i = 0;i < 10;i++) {
+#ifdef DEBUG
         printf("Iter: %d\n", i);
         fflush(stdout);
+#endif
         for (j = 1; j < M - 1; j++) {
             cudaMemcpy(c_a, a[j - 1], M * sizeof(float), cudaMemcpyHostToDevice);
             cudaMemcpy(&c_a[M], a[j], M * sizeof(float), cudaMemcpyHostToDevice);
@@ -88,7 +90,7 @@ int main(int argc, char ** argv) {
             cudaMemcpy(b[j], c_b, M * sizeof(float), cudaMemcpyDeviceToHost);
         }
         
-        printf("[debug] updating a with b\n");
+        //printf("[debug] updating a with b\n");
         for (j = 1; j < M - 1; j++) {
             for (k = 1; k < M - 1; k++) {
                 a[j][k] = b[j][k];
